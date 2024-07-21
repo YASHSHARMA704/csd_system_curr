@@ -6,11 +6,33 @@ $database = "csd_system";
 
 session_start();
 
+// Establish database connection
 $conn = mysqli_connect($servername, $username, $password, $database);
 
+// Check connection
 if (!$conn) {
-    die("Sorry, Connection with database is not built " . mysqli_connect_error());
+    die("Connection failed: " . mysqli_connect_error());
 }
+
+// Pagination variables
+$results_per_page = 10; // Number of items per page
+
+// Determine current page number
+if (!isset($_GET['page'])) {
+    $page = 1;
+} else {
+    $page = $_GET['page'];
+}
+
+// Calculate SQL LIMIT starting row number for the pagination formula
+$start_limit = ($page - 1) * $results_per_page;
+
+// Search functionality
+$search = "";
+if (isset($_GET['search'])) {
+    $search = $_GET['search'];
+}
+
 ?>
 
 <!doctype html>
@@ -28,7 +50,7 @@ if (!$conn) {
             margin: 0;
             font-family: Arial, sans-serif;
             color: #333;
-            background-color: #f0f4f8; /* Light background color for the body */
+            background-color: #f0f4f8;
             transition: background 0.5s ease-in-out;
         }
 
@@ -42,7 +64,7 @@ if (!$conn) {
             justify-content: space-between;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            background-color: #e3f2fd; /* Light blue background for header actions */
+            background-color: #e3f2fd;
             padding: 10px;
             border-radius: 5px;
         }
@@ -56,9 +78,9 @@ if (!$conn) {
 
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* 4 cards per row, responsive */
-            gap: 20px 20px; /* Horizontal and vertical gaps between cards */
-            background-color: #ffffff; /* White background for the grid */
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px 20px;
+            background-color: #ffffff;
             padding: 10px;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -69,41 +91,64 @@ if (!$conn) {
             border-radius: 5px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: box-shadow 0.3s ease-in-out;
-            background-color: #ffffff; /* Card background color */
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            background-color: #ffffff;
             display: flex;
             flex-direction: column;
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
         .card img {
-            width: 60%;
-            height: 60%; /* Fixed height for the image */
-            object-fit: cover; /* Cover the image area */
+            width: 100px;
+            height: 100px; /* Reduced height of the image */
+            object-fit: cover;
+            margin-top: 20px;
             margin:auto;
+            padding-top:4px;
+            
         }
 
         .card-body {
             padding: 15px;
-            background-color: #f9f9f9; /* Light background color for card body */
-            flex: 1; /* Grow to take available space */
+            flex: 1;
         }
 
         .card-title {
-            font-size: 1.1em; /* Slightly smaller font size for card titles */
+            font-size: 1.1em;
             margin-bottom: 10px;
             color: #333;
-            background-color: #e3f2fd; /* Light blue background for card title */
+            background-color: #e3f2fd;
             padding: 5px;
             border-radius: 3px;
         }
 
         .card-text {
-            font-size: 0.85em; /* Slightly smaller font size for card text */
+            font-size: 0.76em;
             color: #666;
-            background-color: #fafafa; /* Light grey background for card text fields */
+            background-color: #fafafa;
             padding: 5px;
             border-radius: 3px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
         }
 
         .card-footer {
@@ -111,29 +156,30 @@ if (!$conn) {
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            background-color: #e1f5fe; /* Light blue background color for card footer */
+            background-color: #e1f5fe;
             border-top: 1px solid #ddd;
         }
 
         .card-footer .btn {
-            margin-left: 10px;
             transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
+            padding: 0.375rem 0.75rem; /* Reduced padding for the button */
+            font-size: 0.8em; 
+            margin-left: 30px;/* Reduced font size for the button */
         }
 
         .card-footer .btn:hover {
             transform: scale(1.05);
         }
 
-        .card-footer .select-quantity {
+        .select-quantity {
             display: flex;
-            align-items:center;
+            align-items: center;
             justify-content: space-between;
         }
 
         .select-quantity input {
-            width: 60px; /* Reduced width for quantity input */
-            margin-right: 10px;
-            text-align:center;
+            width: 60px;
+            text-align: center;
         }
 
         @media (max-width: 900px) {
@@ -143,39 +189,39 @@ if (!$conn) {
             }
 
             .card-grid {
-                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Adjusted for smaller screens */
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             }
         }
 
         #add-btn {
-            background-color: #ffcc80; /* Light orange button */
+            background-color: #ffcc80;
             border-color: #ffcc80;
         }
 
         #add-btn:hover {
-            background-color: #ffb74d; /* Darker orange on hover */
+            background-color: #ffb74d;
         }
 
         #print-btn {
-            background-color: #9575cd; /* Purple button */
+            background-color: #9575cd;
             border-color: #9575cd;
         }
 
         #print-btn:hover {
-            background-color: #7e57c2; /* Darker purple on hover */
+            background-color: #7e57c2;
         }
 
         #logout-btn {
-            background-color: #ef5350; /* Red button */
+            background-color: #ef5350;
             border-color: #ef5350;
         }
 
         #logout-btn:hover {
-            background-color: #e53935; /* Darker red on hover */
+            background-color: #e53935;
         }
 
         .btn-orders {
-            background-color: #28a745; /* Attractive color */
+            background-color: #28a745;
             border-color: #28a745;
             color: #fff;
             margin-right: 3px;
@@ -186,7 +232,6 @@ if (!$conn) {
             background-color: #218838;
             border-color: #1e7e34;
         }
-
     </style>
 </head>
 
@@ -219,39 +264,88 @@ if (!$conn) {
             </div>
         </div>
 
+        <!-- Search form -->
+        <form class="form-inline mb-3">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+
         <div class="card-grid">
             <?php
-            $sql = "SELECT * FROM items";
+            // Fetch items with pagination and search
+            $sql = "SELECT * FROM items WHERE name LIKE '%$search%' OR itemId LIKE '%$search%' OR category LIKE '%$search%' OR description LIKE '%$search%' OR price LIKE '%$search%' OR stock_quantity LIKE '%$search%' OR Unit LIKE '%$search%' OR Remarks LIKE '%$search%'";
+            $sql .= " LIMIT $start_limit, $results_per_page";
+            
             $result = mysqli_query($conn, $sql);
 
-            while ($row = mysqli_fetch_assoc($result)) {
-                ?>
-                <div class="card">
-                    <img src="<?php echo 'items_image/' . $row['item_image']; ?>" class="item_image1" alt="<?php echo $row['name']; ?>">
-                    <div class="card-body">
-                        <h5 class="card-title"><?php echo $row['name']; ?></h5>
-                        <p class="card-text"><strong>ID:</strong> <?php echo $row['itemId']; ?></p>
-                        <p class="card-text"><strong>Category:</strong> <?php echo $row['category']; ?></p>
-                        <p class="card-text"><strong>Description:</strong> <?php echo $row['description']; ?></p>
-                        <p class="card-text"><strong>Price:</strong> $<?php echo number_format($row['price'], 2); ?></p>
-                        <p class="card-text"><strong>Stock:</strong> <?php echo $row['stock_quantity']; ?></p>
-                    </div>
-                    <div class="card-footer">
-                        <form action="cartpage.php" method="POST" class="d-flex align-items-center">
-                            <input type="hidden" name="itemId" value="<?php echo $row['itemId']; ?>">
-                            <input type="hidden" name="name" value="<?php echo $row['name']; ?>">
-                            <input type="hidden" name="category" value="<?php echo $row['category']; ?>">
-                            <input type="hidden" name="description" value="<?php echo $row['description']; ?>">
-                            <input type="hidden" name="price" value="<?php echo $row['price']; ?>">
-                            <input type="hidden" name="stock_quantity" value="<?php echo $row['stock_quantity']; ?>">
-                            <div class="select-quantity">
-                                <input type="number" name="selected_quantity" min="0" max="<?php echo $row['stock_quantity']; ?>" value="0">
-                                <button type="submit" name="Add_To_Cart" class="btn btn-outline-primary">Add To Cart</button>
+            if ($result && mysqli_num_rows($result) > 0) {
+                while ($row = mysqli_fetch_assoc($result)) {
+                    ?>
+                    <div class="card">
+                        <img src="<?php echo 'items_image/' . $row['item_image']; ?>" alt="<?php echo $row['name']; ?>">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo $row['name']; ?></h5>
+                            <div class="card-text">
+                                <span><strong>ID:</strong> <?php echo $row['itemId']; ?></span>
+                                <span style="flex-grow: 1;"></span> <!-- Spacer -->
+                                <span><strong>Category:</strong> <?php echo $row['category']; ?></span>
                             </div>
-                        </form>
+                            <div class="card-text">
+                                <span><strong>Description:</strong> <?php echo $row['description']; ?></span>
+                            </div>
+                            <div class="card-text">
+                                <span><strong>Price:</strong> Rs <?php echo number_format($row['price'], 2); ?></span>
+                                <span style="flex-grow: 1;"></span> <!-- Spacer -->
+                                <span><strong>Stock:</strong> <?php echo $row['stock_quantity']; ?></span>
+                            </div>
+                            <div class="card-text">
+                                <span><strong>Remark:</strong> <?php echo $row['Remarks']; ?></span>
+                                <span style="flex-grow: 1;"></span> <!-- Spacer -->
+                                <span><strong>Unit</strong> <?php echo $row['Unit']; ?></span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <form action="cartpage.php" method="POST" class="d-flex align-items-center">
+                                <input type="hidden" name="itemId" value="<?php echo $row['itemId']; ?>">
+                                <input type="hidden" name="name" value="<?php echo $row['name']; ?>">
+                                <input type="hidden" name="category" value="<?php echo $row['category']; ?>">
+                                <input type="hidden" name="description" value="<?php echo $row['description']; ?>">
+                                <input type="hidden" name="price" value="<?php echo $row['price']; ?>">
+                                <input type="hidden" name="stock_quantity" value="<?php echo $row['stock_quantity']; ?>">
+                                <input type="hidden" name="remarks" value="<?php echo $row['Remarks']; ?>">
+                                <input type="hidden" name="unit" value="<?php echo $row['Unit']; ?>">
+                                <div class="select-quantity">
+                                    <input type="number" name="selected_quantity" min="1" step="0.01" max="<?php echo $row['stock_quantity']; ?>" value="0">
+                                    <button type="submit" name="Add_To_Cart" class="btn btn-outline-primary" style="padding: 0.2rem 0.5rem; font-size: 0.8em;">Add To Cart</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-                <?php
+                    <?php
+                }
+
+                // Free result set
+                mysqli_free_result($result);
+
+                // Pagination links
+                $sql_pagination = "SELECT COUNT(*) AS total FROM items WHERE name LIKE '%$search%' OR itemId LIKE '%$search%' OR category LIKE '%$search%' OR description LIKE '%$search%' OR price LIKE '%$search%' OR stock_quantity LIKE '%$search%'";
+
+                $result_pagination = mysqli_query($conn, $sql_pagination);
+                $row_pagination = mysqli_fetch_assoc($result_pagination);
+                $total_pages = ceil($row_pagination['total'] / $results_per_page);
+
+                // Display pagination controls if there's more than one page
+                if ($total_pages > 1) {
+                    echo '<div class="d-flex justify-content-center mt-4">';
+                    echo '<ul class="pagination">';
+                    for ($i = 1; $i <= $total_pages; $i++) {
+                        echo '<li class="page-item ' . ($i == $page ? 'active' : '') . '"><a class="page-link" href="?page=' . $i . '&search=' . $search . '">' . $i . '</a></li>';
+                    }
+                    echo '</ul>';
+                    echo '</div>';
+                }
+            } else {
+                echo "<p>No items found.</p>";
             }
             ?>
         </div>

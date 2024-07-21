@@ -5,8 +5,8 @@
 </footer>
 <style>
 footer {
-    background-color: #002147;
-    color: white;
+    background-color: transparent;
+    color: blue;
     text-align: center;
     padding: 10px 0;
     margin-top: auto;

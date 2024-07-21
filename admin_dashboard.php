@@ -26,6 +26,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $description = $_POST['description'];
         $price = $_POST['price'];
         $stock_quantity = $_POST['stock_quantity'];
+        $unit = $_POST['unit'];
+        $remarks = $_POST['remarks'];
         $item_image = $_FILES['item_image']['name'];
 
         $checkQuery = "SELECT * FROM items WHERE itemId = $itemId";
@@ -39,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $target_file = $target_dir . basename($_FILES["item_image"]["name"]);
             move_uploaded_file($_FILES["item_image"]["tmp_name"], $target_file);
 
-            $sql = "INSERT INTO items (itemId , name, category, description, price, stock_quantity, item_image) VALUES ('$itemId' , '$name', '$category', '$description', '$price', '$stock_quantity', '$item_image')";
+            $sql = "INSERT INTO items (itemId , name, category, description, price, stock_quantity, item_image, Remarks , Unit) VALUES ('$itemId' , '$name', '$category', '$description', '$price', '$stock_quantity', '$item_image' , '$remarks' , '$unit')";
             if (mysqli_query($conn, $sql)) {
                 $insert = true;
             }
@@ -53,6 +55,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $description = $_POST['description'];
         $price = $_POST['price'];
         $stock_quantity = $_POST['stock_quantity'];
+        $remarks = $_POST['remarks'];
+        $unit = $_POST['unit'];
 
         // Check if new itemId already exists
         $new_itemId = $_POST['new_itemId'];
@@ -72,9 +76,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $target_dir = "items_image/";
             $target_file = $target_dir . basename($_FILES["item_image"]["name"]);
             move_uploaded_file($_FILES["item_image"]["tmp_name"], $target_file);
-            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price', stock_quantity='$stock_quantity', item_image='$item_image' WHERE itemId='$itemId'";
+            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price', stock_quantity='$stock_quantity', Remarks = '$remarks', Unit = '$unit', item_image='$item_image' WHERE itemId='$itemId'";
         } else {
-            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price', stock_quantity='$stock_quantity' WHERE itemId='$itemId'";
+            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price', stock_quantity='$stock_quantity', Remarks = '$remarks', Unit = '$unit' WHERE itemId='$itemId'";
         }
 
         if (mysqli_query($conn, $sql)) {
@@ -137,7 +141,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 10px 0;
+            margin: 5px 0;
         }
 
         th,
@@ -149,6 +153,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         th {
             background-color: #f4f4f4;
+        }
+
+        .temp{
+            display: flex;
+            gap:2px;
+            margin-top:20px;
         }
 
         @media (max-width: 900px) {
@@ -176,6 +186,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="header-actions mb-3 mt-4">
             <h4>Available Items</h4>
             <div>
+                <a href="admin_orders.php" class="btn btn-primary">Orders</a>
                 <button id="add-btn" class="btn btn-primary"><i class="fas fa-plus"></i> Add</button>
                 <button id="print-btn" class="btn btn-secondary"><i class="fas fa-print"></i> Print</button>
                 <button id="logout-btn" class="btn btn-danger" onclick="window.location.href='logout.php';"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -193,6 +204,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <th class='text-center'>Description</th>
                         <th class='text-center'>Price</th>
                         <th class='text-center'>Stock Quantity</th>
+                        <th class='text-center'>Unit</th>
+                        <th class='text-center'>Remarks</th>
                         <th class='text-center'>Item Image</th>
                         <th class='text-center'>Actions</th>
                     </tr>
@@ -212,10 +225,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <td class='text-center'>" . $row['description'] . "</td>
                             <td class='text-center'>" . $row['price'] . "</td>
                             <td class='text-center'>" . $row['stock_quantity'] . "</td>
+                            <td class='text-center'>" . $row['Unit'] . "</td>
+                            <td class='text-center'>" . $row['Remarks'] . "</td>
                             <td class='text-center'><img src='items_image/" . $row['item_image'] . "' alt='" . $row['name'] . "' width='50' height='50'></td>
-                            <td class='text-center'>
-                                <button class='edit btn btn-sm btn-primary' data-itemid='" . $row['itemId'] . "' data-name='" . $row['name'] . "' data-category='" . $row['category'] . "' data-description='" . $row['description'] . "' data-price='" . $row['price'] . "' data-stock_quantity='" . $row['stock_quantity'] . "' data-item_image='" . $row['item_image'] . "'><i class='fas fa-edit'></i> Edit</button>
-                                <button class='delete btn btn-sm btn-danger' data-itemid='" . $row['itemId'] . "'><i class='fas fa-trash'></i> Delete</button>
+                            <td class='text-center temp'>
+                                <button class='edit btn btn-sm btn-primary' data-itemid='" . $row['itemId'] . "' data-name='" . $row['name'] . "' data-category='" . $row['category'] . "' data-description='" . $row['description'] . "' data-price='" . $row['price'] . "' data-stock_quantity='" . $row['stock_quantity'] . "' data-item_image='" . $row['item_image']. "' data-remarks='" . $row['Remarks'] . "' data-unit='" . $row['Unit'] . "'> Edit</button>
+                                <button class='delete btn btn-sm btn-danger' data-itemid='" . $row['itemId'] . "'> Delete</button>
                             </td>
                         </tr>";
                     }
@@ -226,109 +241,149 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <!-- Add Modal -->
-    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <form action="admin_dashboard.php" method="post" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="addModalLabel">Add Item</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="admin_dashboard.php" method="post" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModalLabel">Add Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="itemId">Item ID</label>
+                        <input type="text" class="form-control" id="itemId" name="itemId" required>
                     </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="itemId">Item ID</label>
-                            <input type="text" class="form-control" id="itemId" name="itemId" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="name">Name</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="category">Category</label>
-                            <input type="text" class="form-control" id="category" name="category" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea class="form-control" id="description" name="description" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="price">Price</label>
-                            <input type="number" class="form-control" id="price" name="price" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="stock_quantity">Stock Quantity</label>
-                            <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="item_image">Item Image</label>
-                            <input type="file" class="form-control-file" id="item_image" name="item_image" required>
-                        </div>
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary" name="submit">Add Item</button>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select class="form-control" id="category" name="category" required>
+                            <option value="C1">C1</option>
+                            <option value="C2">C2</option>
+                            <option value="C3">C3</option>
+                            <option value="C4">C4</option>
+                        </select>
                     </div>
-                </form>
-            </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price</label>
+                        <input type="number" class="form-control" id="price" min="1" step="0.01" name="price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stock_quantity">Stock Quantity</label>
+                        <input type="number" class="form-control" id="stock_quantity" step="0.01" min="0.01" name="stock_quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="unit">Unit</label>
+                        <select class="form-control" id="unit" name="unit" required>
+                            <option value="Kg">Kg</option>
+                            <option value="gm">gm</option>
+                            <option value="L">L</option>
+                            <option value="ml">ml</option>
+                            <option value="Packets">Packets</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="remarks">Remarks</label>
+                        <input type="text" class="form-control" id="remarks" name="remarks" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item_image">Item Image</label>
+                        <input type="file" class="form-control-file" id="item_image" name="item_image" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" name="submit">Add Item</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
+
 
     <!-- Edit Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <form action="admin_dashboard.php" method="post" enctype="multipart/form-data">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editModalLabel">Edit Item</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="admin_dashboard.php" method="post" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Item</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="itemId">Item ID</label>
+                        <input type="text" class="form-control" id="edit-itemId" name="itemId" readonly>
                     </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="itemId">Item ID</label>
-                            <input type="text" class="form-control" id="edit-itemId" name="itemId" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="new_itemId">New Item ID</label>
-                            <input type="text" class="form-control" id="edit-new_itemId" name="new_itemId">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-name">Name</label>
-                            <input type="text" class="form-control" id="edit-name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-category">Category</label>
-                            <input type="text" class="form-control" id="edit-category" name="category" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-description">Description</label>
-                            <textarea class="form-control" id="edit-description" name="description" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-price">Price</label>
-                            <input type="number" class="form-control" id="edit-price" name="price" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-stock_quantity">Stock Quantity</label>
-                            <input type="number" class="form-control" id="edit-stock_quantity" name="stock_quantity" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-item_image">Item Image</label>
-                            <input type="file" class="form-control-file" id="edit-item_image" name="item_image">
-                            <small>Leave blank if you don't want to change the image</small>
-                        </div>
+                    <div class="form-group">
+                        <label for="new_itemId">New Item ID</label>
+                        <input type="text" class="form-control" id="edit-new_itemId" name="new_itemId">
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary" name="update">Update Item</button>
+                    <div class="form-group">
+                        <label for="edit-name">Name</label>
+                        <input type="text" class="form-control" id="edit-name" name="name" required>
                     </div>
-                </form>
-            </div>
+                    <div class="form-group">
+                        <label for="edit-category">Category</label>
+                        <select class="form-control" id="edit-category" name="category" required>
+                            <option value="C1">C1</option>
+                            <option value="C2">C2</option>
+                            <option value="C3">C3</option>
+                            <option value="C4">C4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-description">Description</label>
+                        <textarea class="form-control" id="edit-description" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-price">Price</label>
+                        <input type="number" class="form-control" id="edit-price" min="1" name="price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-stock_quantity">Stock Quantity</label>
+                        <input type="number" class="form-control" id="edit-stock_quantity" min="0.01" step="0.01" name="stock_quantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-unit">Unit</label>
+                        <select class="form-control" id="edit-unit" name="unit" required>
+                            <option value="Kg">Kg</option>
+                            <option value="gm">gm</option>
+                            <option value="L">L</option>
+                            <option value="ml">ml</option>
+                            <option value="Packets">Packets</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-remarks">Remarks</label>
+                        <input type="text" class="form-control" id="edit-remarks" name="remarks" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-item_image">Item Image</label>
+                        <input type="file" class="form-control-file" id="edit-item_image" name="item_image">
+                        <small>Leave blank if you don't want to change the image</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" name="update">Update Item</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
+
 
     <!-- Delete Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -373,7 +428,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 var description = $(this).data('description');
                 var price = $(this).data('price');
                 var stock_quantity = $(this).data('stock_quantity');
+                var remarks = $(this).data('remarks');
                 var item_image = $(this).data('item_image');
+                var unit = $(this).data('unit');
 
                 $('#edit-itemId').val(itemId);
                 $('#edit-new_itemId').val(itemId);
@@ -382,6 +439,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $('#edit-description').val(description);
                 $('#edit-price').val(price);
                 $('#edit-stock_quantity').val(stock_quantity);
+                $('#edit-remarks').val(remarks);
+                $('#edit-unit').val(unit);
                 $('#edit-item_image').val('');
 
                 $('#editModal').modal('show');

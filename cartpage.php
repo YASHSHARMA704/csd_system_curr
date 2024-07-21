@@ -29,7 +29,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     'category' => $_POST['category'],
                     'description' => $_POST['description'],
                     'price' => $_POST['price'],
-                    'selected_quantity' => $_POST['selected_quantity']
+                    'selected_quantity' => $_POST['selected_quantity'],
+                    'remarks' => $_POST['remarks'],
+                    'unit' => $_POST['unit']
                 );
 
                 echo "<script>alert('Item is Successfully added in the cart!')</script>";
@@ -42,7 +44,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 'category' => $_POST['category'],
                 'description' => $_POST['description'],
                 'price' => $_POST['price'],
-                'selected_quantity' => $_POST['selected_quantity']
+                'selected_quantity' => $_POST['selected_quantity'],
+                'remarks' => $_POST['remarks'],
+                'unit' => $_POST['unit']
             );
 
             echo "<script>alert('Item is Successfully added in the cart!')</script>";
@@ -102,51 +106,81 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (isset($_POST['Make_Purchase'])) {
         $total = 0;
-        if (isset($_SESSION['cart'])) {
-            foreach ($_SESSION['cart'] as $key => $value) {
+    
+        if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+            // Calculate total amount
+            foreach ($_SESSION['cart'] as $value) {
                 $total += $value['price'] * $value['selected_quantity'];
             }
-        }
     
-        if ($total == 0) {
-            echo "<script>alert('No item in the cart!')</script>";
-            echo "<script>window.location = 'cartpage.php'</script>";
-        } else {
-            // Generate a unique random order_id
-            do {
-                $order_id = rand(100000, 999999);
-                $query = "SELECT * FROM orders WHERE order_id = $order_id";
-                $result = mysqli_query($conn, $query);
-            } while (mysqli_num_rows($result) > 0);
-    
-            // Insert into orders table
-            $user_id = $_SESSION['user_id']; // Assuming user_id is stored in session
-            $query = "INSERT INTO orders (user_id, order_id, status) VALUES ($user_id, $order_id, 1)";
-            if (mysqli_query($conn, $query)) {
-                // Insert each item in the cart into the order_details table
-                foreach ($_SESSION['cart'] as $key => $value) {
-                    $item_id = $value['itemId'];
-                    $item_name = $value['name'];
-                    $quantity = $value['selected_quantity'];
-                    $price = $value['price'];
-                    
-                    $query = "INSERT INTO order_details (order_id, item_id, item_name, quantity, price) 
-                              VALUES ($order_id, $item_id, '$item_name', $quantity, $price)";
-                    
-                    if (!mysqli_query($conn, $query)) {
-                        echo "<script>alert('Error: Could not insert order details')</script>";
-                    }
-                }
-                echo "<script>alert('Purchase successful! Order ID: $order_id')</script>";
-                unset($_SESSION['cart']); // Clear the cart after successful purchase
-                echo "<script>window.location = 'user_dashboard.php'</script>";
+            if ($total == 0) {
+                echo "<script>alert('No items in the cart!')</script>";
+                echo "<script>window.location = 'cartpage.php'</script>";
             } else {
-                echo "<script>alert('Error: Could not make the purchase')</script>";
+                // Generate a unique order ID
+                $order_id = 0;
+                do {
+                    $order_id = rand(100000, 999999);
+                    $stmt = $conn->prepare("SELECT * FROM orders WHERE order_id = ?");
+                    $stmt->bind_param("i", $order_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                } while ($result->num_rows > 0);
+    
+                $stmt->close();
+    
+                // Begin transaction
+                $conn->begin_transaction();
+    
+                try {
+                    $user_id = $_SESSION['user_id'];
+                    $status = 1; // assuming status 1 means 'pending'
+    
+                    // Insert into orders table
+                    $stmt = $conn->prepare("INSERT INTO orders (user_id, order_id, status) VALUES (?, ?, ?)");
+                    $stmt->bind_param("iii", $user_id, $order_id, $status);
+                    $stmt->execute();
+    
+                    // Check if the order was inserted
+                    if ($stmt->affected_rows === 0) {
+                        throw new Exception("Failed to insert into orders table.");
+                    }
+    
+                    // Insert into order_details table
+                    $stmt = $conn->prepare("INSERT INTO order_details (order_id, item_id, item_name, quantity, price, unit) VALUES (?, ?, ?, ?, ?, ?)");
+    
+                    foreach ($_SESSION['cart'] as $value) {
+                        // Convert the quantity to a float to handle decimal values
+                        $quantity = floatval($value['selected_quantity']);
+                        
+                        // Bind the parameters correctly with d for decimal values
+                        $stmt->bind_param("iisdss", $order_id, $value['itemId'], $value['name'], $quantity, $value['price'], $value['unit']);
+                        $stmt->execute();
+    
+                        // Check if the order details were inserted
+                        if ($stmt->affected_rows === 0) {
+                            throw new Exception("Failed to insert into order_details table.");
+                        }
+                    }
+    
+                    // Commit transaction
+                    $conn->commit();
+                    unset($_SESSION['cart']); // Clear the cart
+                    echo "<script>alert('Purchase successful! Order ID: $order_id')</script>";
+                    echo "<script>window.location = 'user_dashboard.php'</script>";
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    echo "<script>alert('Purchase failed: " . $e->getMessage() . "')</script>";
+                }
             }
+        } else {
+            echo "<script>alert('No items in the cart!')</script>";
+            echo "<script>window.location = 'cartpage.php'</script>";
         }
     }
     
-
+    
+    
 }
 ?>
 
@@ -242,13 +276,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .card-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 12px;
             justify-content: center; /* Center cards horizontally */
         }
 
         .card-container .card {
             flex: 1 1 calc(25% - 20px); /* 4 cards per row with spacing */
-            max-width: 320px; /* Slightly increased card width */
+            max-width: 280px; /* Slightly increased card width */
             margin-bottom: 20px;
             transition: transform 0.3s, box-shadow 0.3s;
             border: 1px solid #ddd; /* Light border color */
@@ -289,6 +323,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .temp
+        {
+            margin-top: -8px;
+            display:flex;
+            justify-content: space-between;
         }
 
         @media (max-width: 768px) {
@@ -346,12 +387,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     echo "<img src='items_image/" . htmlspecialchars($itemImage) . "' class='card-img-top' alt='" . htmlspecialchars($value['name']) . "'>";
                     echo "<div class='card-body'>";
                     echo "<h5 class='card-title'>ID: " . htmlspecialchars($value['itemId']) . "</h5>";
-                    echo "<p class='card-text'>Name: " . htmlspecialchars($value['name']) . "</p>";
-                    echo "<p class='card-text'>Category: " . htmlspecialchars($value['category']) . "</p>";
+                    
+                    echo "<div class='temp'>";
+                    echo "<span class='card-text'>Name: " . htmlspecialchars($value['name']) . "</span>";
+                    echo "<span class='card-text'>Category: " . htmlspecialchars($value['category']) . "</span>";
+                    echo "</div>";
+                    
                     echo "<p class='card-text'>Description: " . htmlspecialchars($value['description']) . "</p>";
-                    echo "<p class='card-text'>Price: " . number_format($value['price'], 2) . "</p>";
-                    echo "<p class='card-text'>Selected Quantity: " . $value['selected_quantity'] . "</p>";
-                    echo "<div class='d-flex justify-content-between'>";
+
+                    echo "<div class='temp'>";
+                    echo "<span class='card-text'>Price: " . number_format($value['price'], 2) . "</span>";
+                    echo "<span class='card-text'>Quantity: " . $value['selected_quantity'] . "</span>";
+                    echo "</div>";
+
+                    echo "<div class='temp'>";
+                    echo "<p class='card-text'>Remarks: " . htmlspecialchars($value['remarks']) . "</p>";
+                    echo "<span class='card-text'>Unit: " . $value['unit'] . "</span>";
+                    echo "</div>";
+
+                    echo "<div class='d-flex justify-content-between mt-3'>";
                     echo "<button class='btn btn-outline-primary edit-btn' data-itemid='" . $value['itemId'] . "' data-selectedquantity='" . $value['selected_quantity'] . "' data-stockquantity='" . $stockQuantity . "'>Edit</button>";
                     echo "<form method='POST' class='mb-0'>
                             <input type='hidden' name='itemId' value='" . $value['itemId'] . "'>
@@ -368,9 +422,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="col-lg-3 col-md-6 ml-auto cart-summary">
             <div class="border bg-light rounded p-4">
                 <h3>Total:</h3>
-                <h5 class='text-right'><?php echo number_format($total, 2) ?></h5>
+                <h5 class='text-right'>Rs. <?php echo number_format($total, 2) ?></h5>
                 <br>
-                <form method="POST">
+                <form method="POST" action="cartpage.php">
                     <button class="btn btn-primary btn-block" name="Make_Purchase">Make Purchase</button>
                 </form>
             </div>
@@ -391,7 +445,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="modal-body">
                         <div class="form-group">
                             <label for="editQuantity">Selected Quantity:</label>
-                            <input type="number" class="form-control" id="editQuantity" name="selected_quantity" value="" min="1">
+                            <input type="number" class="form-control" id="editQuantity" name="selected_quantity" value="" min="1" step="0.01">
                             <input type="hidden" name="editItemId" id="editItemId" value="">
                         </div>
                     </div>

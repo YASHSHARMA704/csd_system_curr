@@ -72,14 +72,15 @@ if (isset($_SESSION['error_message'])) {
 <title>Login</title>
 <style>
 body {
-  font-family: sans-serif;
+  font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
-  
-  background-color:#f5ffe3;  
+  background: url('./images/bg_canteen.png') no-repeat center center fixed;
+  background-size: cover;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height:100%;
+  width:100%;
 }
 main {
   flex: 1; /* Ensure main content takes up remaining space */
@@ -88,71 +89,87 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 70%;
+  width: 60%;
   margin: auto;
-  height: 50%;
-  background-color: mintcream;
-  /* margin-bottom:50px; */
+  margin-top:100px;
+  height: 60%;
+  background-color: rgba(255, 255, 255, 0.85); /* Add a semi-transparent background */
   padding: 20px;
   border-radius: 15px; /* Rounded corners for the container */
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
   flex: 1;
 }
 
 .left {
   flex: 1;
-  height : 50%;
-  width: 50%;
+  height: 50%;
+  width: 70%;
   display: flex;
   margin-top: -85px;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  text-align:center;
 }
 
 .right {
   flex: 1;
-  margin-top: -75px;
+  /* margin-top: 75px; */
 }
 
 h1 {
   text-align: center;
   margin-bottom: 20px;
-  font-size: 40px;
+  font-size: 36px;
+  font-weight: 700;
   margin-bottom: 40px;
+  color: #333;
 }
 
 input[type="text"],
 input[type="password"] {
   width: 100%;
-  padding: 10px;
-  font-size: 15px;
+  padding: 12px;
+  font-size: 16px;
   margin: 10px 0;
   border: 1px solid #ddd;
   border-radius: 5px; /* Rounded corners for the input fields */
   margin-bottom: 20px;
   box-sizing: border-box;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
+
 button {
-  background-color: #4CAF50;
+  background-color: #007BFF;
   color: white;
   padding: 12px 20px;
-  margin: 10px auto; /* Center the button horizontally */
+  margin: 20px auto; /* Center the button horizontally */
   border: none;
   border-radius: 5px; /* Rounded corners for the button */
   cursor: pointer;
-  width: auto; /* Adjust width to fit content */
+  width: 100%;
   max-width: 200px; /* Set maximum width if needed */
   text-align: center; /* Center align text */
   font-size: 16px;
   display: block; /* Ensure block display for centering */
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Add transition for smooth effect */
 }
 
 button:hover {
-  background-color: #45a049;
+  background-color: #0056b3;
+  transform: scale(1.05); /* Slightly increase size on hover */
 }
 
+img {
+  max-width: 80%; /* Increase image size */
+  height: auto;
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Add transition for smooth effect */
+}
 
+img:hover {
+  opacity: 0.8; /* Slightly decrease opacity on hover */
+  transform: scale(1.05); /* Slightly increase size on hover */
+}
 
 .forgot {
   text-align: center;
@@ -160,7 +177,7 @@ button:hover {
 }
 
 .forgot a {
-  color: #4CAF50;
+  color: #007BFF;
   text-decoration: none;
 }
 
@@ -176,12 +193,10 @@ footer {
   margin-top: auto;
 }
 
-img {
-  max-width: 90%; /* Reduce image size to 90% */
-  height: auto;
-}
-.topic{
-  font-size: 22px;
+.topic {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
 }
 
 .error {
@@ -192,7 +207,8 @@ img {
 
 .bold-label {
   font-weight: bold;
-  font-size:20px;
+  font-size: 18px;
+  color: #333;
 }
 </style>
 </head>
@@ -200,10 +216,12 @@ img {
 <?php include 'navbar.php'; ?>
 <div class="container">
   <div class="left">
-    <div class = "topic">
+    <div class="topic">
       <h2>Canteen Store Department</h2>
     </div>
-    <img src="./images/canteen_logo.png" alt="Login Image" style="height:70%; width: 70%;">
+    <div class="image-container"> <!-- New container for the image -->
+      <img src="./images/canteen_logo_1.png" alt="Login Image">
+    </div>
   </div>
   <div class="right">
     <h1>Login Credentials</h1>
@@ -215,6 +233,7 @@ img {
       <input type="password" id="password" name="password" placeholder="Type your password" required>
       <button type="submit" name="login">Submit</button>
     </form>
+    
   </div>
 </div>
 <?php include 'footer.php'; ?>

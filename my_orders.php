@@ -83,10 +83,25 @@ $user_id = $_SESSION['user_id']; // Assuming user_id is stored in session
             background-color: #2980b9; /* Darker blue for hover effect */
             border-color: #2980b9;
         }
+
+        .btn-back {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .temp
+        {
+            margin-top: 110px;
+            margin-right: 180px;
+        }
     </style>
 </head>
 <body>
 
+    <!-- Back Button -->
+    <!-- <a href="user_dashboard.php" class="btn btn-secondary btn-back">Back</a> -->
+    <a href="user_dashboard.php" class="btn btn-secondary btn-back font-weight-bold temp">&lt; Back</a>
+    
     <!-- navbar -->
     <?php include 'navbar.php'; ?>
 
@@ -194,6 +209,7 @@ $user_id = $_SESSION['user_id']; // Assuming user_id is stored in session
                     echo "<th>Unit</th>";
                     echo "<th>Remarks</th>";
                     echo "<th>Date and Time</th>";
+                    echo "<th>Actions</th>"; // Added Column
                     echo "</tr>";
                     echo "</thead>";
                     echo "<tbody>";
@@ -226,6 +242,7 @@ $user_id = $_SESSION['user_id']; // Assuming user_id is stored in session
                         echo "<td>$unit</td>";
                         echo "<td>$remarks</td>";
                         echo "<td>$date_and_time</td>"; // Added Column
+                        echo "<td><a href='item_details.php?item_id=$item_id' class='btn btn-primary'>View Details</a></td>"; // Added Column
                         echo "</tr>";
 
                         $serial_number++;
@@ -269,6 +286,7 @@ $user_id = $_SESSION['user_id']; // Assuming user_id is stored in session
                     echo "<th>Unit</th>";
                     echo "<th>Remarks</th>";
                     echo "<th>Date and Time</th>"; 
+                    echo "<th>Actions</th>"; // Added Column
                     echo "</tr>";
                     echo "</thead>";
                     echo "<tbody>";
@@ -301,6 +319,7 @@ $user_id = $_SESSION['user_id']; // Assuming user_id is stored in session
                         echo "<td>$unit</td>";
                         echo "<td>$remarks</td>";
                         echo "<td>$date_and_time</td>"; // Added Column
+                        echo "<td><a href='item_details.php?item_id=$item_id' class='btn btn-primary'>View Details</a></td>"; // Added Column
                         echo "</tr>";
 
                         $serial_number++;

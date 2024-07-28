@@ -315,7 +315,7 @@ if (isset($_GET['search'])) {
                                 <input type="hidden" name="remarks" value="<?php echo $row['Remarks']; ?>">
                                 <input type="hidden" name="unit" value="<?php echo $row['Unit']; ?>">
                                 <div class="select-quantity">
-                                    <input type="number" name="selected_quantity" min="1" step="0.01" max="<?php echo $row['stock_quantity']; ?>" value="0">
+                                    <input type="number" name="selected_quantity" min="1" step="<?php echo ($row['Unit'] == 'Packets') ? '1' : '0.01'; ?>"  max="<?php echo min($row['stock_quantity'] , $row['limitt']); ?>" value="0">
                                     <button type="submit" name="Add_To_Cart" class="btn btn-outline-primary" style="padding: 0.2rem 0.5rem; font-size: 0.8em;">Add To Cart</button>
                                 </div>
                             </form>

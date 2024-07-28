@@ -52,8 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['approve_order'])) {
         $order_id = $_GET['approve_order'];
 
-        $approve_stmt = $conn->prepare("UPDATE orders SET status = 2 WHERE order_id = ?");
+        $approve_stmt = $conn->prepare("UPDATE orders SET status = 2 , date_and_time = CURRENT_TIMESTAMP WHERE order_id = ?");
+        $approve1_stmt = $conn->prepare("UPDATE order_details SET date_and_time = CURRENT_TIMESTAMP WHERE order_id = ?");
         $approve_stmt->bind_param("i", $order_id);
+        $approve1_stmt->bind_param("i", $order_id);
+
+        $approve1_stmt->execute();
 
         if ($approve_stmt->execute()) {
             header('Location: admin_orders.php');
@@ -68,8 +72,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (isset($_GET['reject_order'])) {
         $order_id = $_GET['reject_order'];
 
-        $reject_stmt = $conn->prepare("UPDATE orders SET status = 0 WHERE order_id = ?");
+        $reject_stmt = $conn->prepare("UPDATE orders SET status = 0 , date_and_time = CURRENT_TIMESTAMP WHERE order_id = ?");
+        $reject1_stmt = $conn->prepare("UPDATE order_details SET date_and_time = CURRENT_TIMESTAMP WHERE order_id = ?");
         $reject_stmt->bind_param("i", $order_id);
+        $reject1_stmt->bind_param("i", $order_id);
+
+        $reject1_stmt->execute();
 
         if ($reject_stmt->execute()) {
             header('Location: admin_orders.php');
@@ -274,6 +282,162 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                             <button class='btn btn-success btn-action btn-approve' data-order-id='$order_id'>Approve Order</button>
                             <button class='btn btn-danger btn-action btn-reject' data-order-id='$order_id'>Reject Order</button>
                         </div>";
+                }
+            }
+            ?>
+        </div>
+
+        <!-- Approved Orders Section -->
+        <h2 class="section-title">Approved Orders</h2>
+        <div class="table-container">
+            <?php
+            $query = "SELECT * FROM orders WHERE status = 2";
+            $result = mysqli_query($conn, $query);
+
+            if (mysqli_num_rows($result) == 0) {
+                echo "<div class='no-orders'>No approved orders.</div>";
+            } else {
+                while ($order = mysqli_fetch_assoc($result)) {
+                    $order_id = $order['order_id'];
+                    echo "<h4>Order ID: $order_id</h4>";
+                    echo "<table class='table table-bordered' data-order-id='$order_id'>";
+                    echo "<thead>";
+                    echo "<tr>";
+                    echo "<th>Sno.</th>";
+                    echo "<th>Item ID</th>";
+                    echo "<th>Item Name</th>";
+                    echo "<th>Category</th>";
+                    echo "<th>Description</th>";
+                    echo "<th>Quantity</th>";
+                    echo "<th>Price</th>";
+                    echo "<th>Unit</th>";
+                    echo "<th>Remarks</th>";
+                    echo "<th>Date and Time</th>"; 
+                    echo "</tr>";
+                    echo "</thead>";
+                    echo "<tbody>";
+
+                    $item_query = "SELECT od.*, i.category, i.description, i.Unit as unit, i.Remarks as remarks, od.date_and_time 
+                                FROM order_details od 
+                                JOIN items i ON od.item_id = i.itemId 
+                                WHERE od.order_id = $order_id";
+                    $item_result = mysqli_query($conn, $item_query);
+                    $serial_number = 1;
+                    $total_price = 0;
+
+                    while ($item = mysqli_fetch_assoc($item_result)) {
+                        $item_id = $item['item_id'];
+                        $item_name = $item['item_name'];
+                        $category = $item['category'];
+                        $description = $item['description'];
+                        $quantity = $item['quantity'];
+                        $unit = $item['unit'];
+                        $price = $item['price'];
+                        $remarks = $item['remarks'];
+                        $date_and_time = $item['date_and_time'];
+                        $total_price += $price * $quantity;
+
+                        echo "<tr id='item-$item_id'>";
+                        echo "<td>$serial_number</td>";
+                        echo "<td>$item_id</td>";
+                        echo "<td>$item_name</td>";
+                        echo "<td>$category</td>";
+                        echo "<td>$description</td>";
+                        echo "<td class='item-quantity'>$quantity</td>";
+                        echo "<td class='item-price'>" . number_format($price, 2) . "</td>";
+                        echo "<td>$unit</td>";
+                        echo "<td>$remarks</td>";
+                        echo "<td>$date_and_time</td>";
+                        echo "</tr>";
+
+                        $serial_number++;
+                    }
+
+                    echo "<tr id='total-price-row'>";
+                    echo "<td colspan='9' class='text-right total-price'>Total Price</td>";
+                    echo "<td class='total-price' colspan='2' id='total-price'>" . number_format($total_price, 2) . "</td>";
+                    echo "</tr>";
+
+                    echo "</tbody>";
+                    echo "</table>";
+                }
+            }
+            ?>
+        </div>
+
+        <!-- Rejected Orders Section -->
+        <h2 class="section-title">Rejected Orders</h2>
+        <div class="table-container">
+            <?php
+            $query = "SELECT * FROM orders WHERE status = 0";
+            $result = mysqli_query($conn, $query);
+
+            if (mysqli_num_rows($result) == 0) {
+                echo "<div class='no-orders'>No rejected orders.</div>";
+            } else {
+                while ($order = mysqli_fetch_assoc($result)) {
+                    $order_id = $order['order_id'];
+                    echo "<h4>Order ID: $order_id</h4>";
+                    echo "<table class='table table-bordered' data-order-id='$order_id'>";
+                    echo "<thead>";
+                    echo "<tr>";
+                    echo "<th>Sno.</th>";
+                    echo "<th>Item ID</th>";
+                    echo "<th>Item Name</th>";
+                    echo "<th>Category</th>";
+                    echo "<th>Description</th>";
+                    echo "<th>Quantity</th>";
+                    echo "<th>Price</th>";
+                    echo "<th>Unit</th>";
+                    echo "<th>Remarks</th>";
+                    echo "<th>Date and Time</th>"; 
+                    echo "</tr>";
+                    echo "</thead>";
+                    echo "<tbody>";
+
+                    $item_query = "SELECT od.*, i.category, i.description, i.Unit as unit, i.Remarks as remarks, od.date_and_time 
+                                FROM order_details od 
+                                JOIN items i ON od.item_id = i.itemId 
+                                WHERE od.order_id = $order_id";
+                    $item_result = mysqli_query($conn, $item_query);
+                    $serial_number = 1;
+                    $total_price = 0;
+
+                    while ($item = mysqli_fetch_assoc($item_result)) {
+                        $item_id = $item['item_id'];
+                        $item_name = $item['item_name'];
+                        $category = $item['category'];
+                        $description = $item['description'];
+                        $quantity = $item['quantity'];
+                        $unit = $item['unit'];
+                        $price = $item['price'];
+                        $remarks = $item['remarks'];
+                        $date_and_time = $item['date_and_time'];
+                        $total_price += $price * $quantity;
+
+                        echo "<tr id='item-$item_id'>";
+                        echo "<td>$serial_number</td>";
+                        echo "<td>$item_id</td>";
+                        echo "<td>$item_name</td>";
+                        echo "<td>$category</td>";
+                        echo "<td>$description</td>";
+                        echo "<td class='item-quantity'>$quantity</td>";
+                        echo "<td class='item-price'>" . number_format($price, 2) . "</td>";
+                        echo "<td>$unit</td>";
+                        echo "<td>$remarks</td>";
+                        echo "<td>$date_and_time</td>";
+                        echo "</tr>";
+
+                        $serial_number++;
+                    }
+
+                    echo "<tr id='total-price-row'>";
+                    echo "<td colspan='9' class='text-right total-price'>Total Price</td>";
+                    echo "<td class='total-price' colspan='2' id='total-price'>" . number_format($total_price, 2) . "</td>";
+                    echo "</tr>";
+
+                    echo "</tbody>";
+                    echo "</table>";
                 }
             }
             ?>

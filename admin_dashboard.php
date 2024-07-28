@@ -28,6 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stock_quantity = $_POST['stock_quantity'];
         $unit = $_POST['unit'];
         $remarks = $_POST['remarks'];
+        $limit = $_POST['limit'];
         $item_image = $_FILES['item_image']['name'];
 
         $checkQuery = "SELECT * FROM items WHERE itemId = $itemId";
@@ -41,7 +42,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $target_file = $target_dir . basename($_FILES["item_image"]["name"]);
             move_uploaded_file($_FILES["item_image"]["tmp_name"], $target_file);
 
-            $sql = "INSERT INTO items (itemId , name, category, description, price, stock_quantity, item_image, Remarks , Unit) VALUES ('$itemId' , '$name', '$category', '$description', '$price', '$stock_quantity', '$item_image' , '$remarks' , '$unit')";
+            $sql = "INSERT INTO items (itemId , name, category, description, price, stock_quantity, item_image, Remarks , Unit, limitt) VALUES ('$itemId' , '$name', '$category', '$description', '$price', '$stock_quantity', '$item_image' , '$remarks' , '$unit', '$limit')";
+
             if (mysqli_query($conn, $sql)) {
                 $insert = true;
             }
@@ -57,6 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stock_quantity = $_POST['stock_quantity'];
         $remarks = $_POST['remarks'];
         $unit = $_POST['unit'];
+        $limit = $_POST['limit'];
 
         // Check if new itemId already exists
         $new_itemId = $_POST['new_itemId'];
@@ -76,9 +79,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $target_dir = "items_image/";
             $target_file = $target_dir . basename($_FILES["item_image"]["name"]);
             move_uploaded_file($_FILES["item_image"]["tmp_name"], $target_file);
-            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price', stock_quantity='$stock_quantity', Remarks = '$remarks', Unit = '$unit', item_image='$item_image' WHERE itemId='$itemId'";
+            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price', stock_quantity='$stock_quantity', Remarks = '$remarks', Unit = '$unit', limitt = '$limit', item_image='$item_image' , `date_&_time_added`= CURRENT_TIMESTAMP WHERE itemId='$itemId'";
         } else {
-            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price', stock_quantity='$stock_quantity', Remarks = '$remarks', Unit = '$unit' WHERE itemId='$itemId'";
+            $sql = "UPDATE items SET itemId='$new_itemId', name='$name', category='$category', description='$description', price='$price' , limitt = '$limit', stock_quantity='$stock_quantity', Remarks = '$remarks', Unit = '$unit' , `date_&_time_added` =CURRENT_TIMESTAMP WHERE itemId='$itemId'";
         }
 
         if (mysqli_query($conn, $sql)) {
@@ -205,6 +208,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <th class='text-center'>Price</th>
                         <th class='text-center'>Stock Quantity</th>
                         <th class='text-center'>Unit</th>
+                        <th class='text-center'>Limit</th>
                         <th class='text-center'>Remarks</th>
                         <th class='text-center'>Item Image</th>
                         <th class='text-center'>Actions</th>
@@ -226,10 +230,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <td class='text-center'>" . $row['price'] . "</td>
                             <td class='text-center'>" . $row['stock_quantity'] . "</td>
                             <td class='text-center'>" . $row['Unit'] . "</td>
+                            <td class='text-center'>" . $row['limitt'] . "</td>
                             <td class='text-center'>" . $row['Remarks'] . "</td>
                             <td class='text-center'><img src='items_image/" . $row['item_image'] . "' alt='" . $row['name'] . "' width='50' height='50'></td>
                             <td class='text-center temp'>
-                                <button class='edit btn btn-sm btn-primary' data-itemid='" . $row['itemId'] . "' data-name='" . $row['name'] . "' data-category='" . $row['category'] . "' data-description='" . $row['description'] . "' data-price='" . $row['price'] . "' data-stock_quantity='" . $row['stock_quantity'] . "' data-item_image='" . $row['item_image']. "' data-remarks='" . $row['Remarks'] . "' data-unit='" . $row['Unit'] . "'> Edit</button>
+                                <button class='edit btn btn-sm btn-primary' data-itemid='" . $row['itemId'] . "' data-name='" . $row['name'] . "' data-category='" . $row['category'] . "' data-description='" . $row['description'] . "' data-price='" . $row['price'] . "' data-stock_quantity='" . $row['stock_quantity'] . "' data-item_image='" . $row['item_image']. "' data-remarks='" . $row['Remarks'] . "' data-unit='" . $row['Unit'] . "' data-limit='" . $row['limitt'] . "'> Edit</button>
                                 <button class='delete btn btn-sm btn-danger' data-itemid='" . $row['itemId'] . "'> Delete</button>
                             </td>
                         </tr>";
@@ -290,6 +295,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="ml">ml</option>
                             <option value="Packets">Packets</option>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="limit">Limit</label>
+                        <input type="number" class="form-control" id="limit" step="0.01" min="0.01" name="limit" required>
                     </div>
                     <div class="form-group">
                         <label for="remarks">Remarks</label>
@@ -366,6 +375,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </select>
                     </div>
                     <div class="form-group">
+                        <label for="edit-limit">Limit</label>
+                        <input type="number" class="form-control" id="edit-limit" min="0.01" step="0.01" name="limit" required>
+                    </div>
+                    <div class="form-group">
                         <label for="edit-remarks">Remarks</label>
                         <input type="text" class="form-control" id="edit-remarks" name="remarks" required>
                     </div>
@@ -431,6 +444,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 var remarks = $(this).data('remarks');
                 var item_image = $(this).data('item_image');
                 var unit = $(this).data('unit');
+                var limit = $(this).data('limit');
 
                 $('#edit-itemId').val(itemId);
                 $('#edit-new_itemId').val(itemId);
@@ -441,6 +455,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $('#edit-stock_quantity').val(stock_quantity);
                 $('#edit-remarks').val(remarks);
                 $('#edit-unit').val(unit);
+                $('#edit-limit').val(limit);
                 $('#edit-item_image').val('');
 
                 $('#editModal').modal('show');

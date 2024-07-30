@@ -6,8 +6,8 @@
   <title>navbar</title>
     <style>
     .header {
-        /* background-color: #064164; */
-        background: linear-gradient(to bottom, #0C7EC2, #085B8E);
+        background-color: #064164;
+        /* background: linear-gradient(to bottom, #0C7EC2, #085B8E); */
         color: white;
         padding: 15px 20px;
         display: flex;

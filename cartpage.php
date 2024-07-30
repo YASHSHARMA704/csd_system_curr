@@ -332,6 +332,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             justify-content: space-between;
         }
 
+        .table-container {
+            margin-top: 20px;
+            background-color: #ffffff; /* White background for table */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
         @media (max-width: 768px) {
             .card-container .card {
                 flex: 1 1 calc(50% - 20px); /* 2 cards per row on small screens */
@@ -359,7 +367,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
 
-        <div class="card-container">
+<div class="table-container">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Image</th>
+                <th scope="col">Name</th>
+                <th scope="col">Category</th>
+                <th scope="col">Description</th>
+                <th scope="col">Price</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Unit</th>
+                <th scope="col">Total</th>
+                <th scope="col">Remarks</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
             <?php
             $total = 0;
             if (isset($_SESSION['cart'])) {
@@ -374,54 +399,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     if (mysqli_num_rows($result) > 0) {
                         $row = mysqli_fetch_assoc($result);
                         $stockQuantity = $row['stock_quantity'];
-                        $itemImage = !empty($row['item_image']) ? $row['item_image'] : 'default_image.jpg'; // Default image if not found
+                        $itemImage = !empty($row['item_image']) ? $row['item_image'] : 'default_image.jpg';
                     } else {
                         $stockQuantity = 0;
-                        $itemImage = 'default_image.jpg'; // Default image if not found
+                        $itemImage = 'default_image.jpg';
                     }
 
                     // Calculate total price
                     $total += $value['price'] * $value['selected_quantity'];
 
-                    echo "<div class='card'>";
-                    echo "<img src='items_image/" . htmlspecialchars($itemImage) . "' class='card-img-top' alt='" . htmlspecialchars($value['name']) . "'>";
-                    echo "<div class='card-body'>";
-                    echo "<h5 class='card-title'>ID: " . htmlspecialchars($value['itemId']) . "</h5>";
-                    
-                    echo "<div class='temp'>";
-                    echo "<span class='card-text'>Name: " . htmlspecialchars($value['name']) . "</span>";
-                    echo "<span class='card-text'>Category: " . htmlspecialchars($value['category']) . "</span>";
-                    echo "</div>";
-                    
-                    echo "<p class='card-text'>Description: " . htmlspecialchars($value['description']) . "</p>";
-
-                    echo "<div class='temp'>";
-                    echo "<span class='card-text'>Price: " . number_format($value['price'], 2) . "</span>";
-                    echo "<span class='card-text'>Quantity: " . $value['selected_quantity'] . "</span>";
-                    echo "</div>";
-
-                    echo "<div class='temp'>";
-                    echo "<p class='card-text'>Remarks: " . htmlspecialchars($value['remarks']) . "</p>";
-                    echo "<span class='card-text'>Unit: " . $value['unit'] . "</span>";
-                    echo "</div>";
-
-                    echo "<div class='d-flex justify-content-between mt-3'>";
-                    echo "<button class='btn btn-outline-primary edit-btn' data-itemid='" . $value['itemId'] . "' data-selectedquantity='" . $value['selected_quantity'] . "' data-stockquantity='" . $stockQuantity . "'>Edit</button>";
-                    echo "<form method='POST' class='mb-0'>
-                            <input type='hidden' name='itemId' value='" . $value['itemId'] . "'>
-                            <button type='submit' name='Remove_Item' class='btn btn-outline-danger btn-sm'>Remove</button>
-                            </form>";
-                    echo "</div></div></div>";
+                    echo "<tr>";
+                    echo "<td>" . htmlspecialchars($value['itemId']) . "</td>";
+                    echo "<td><img src='items_image/" . htmlspecialchars($itemImage) . "' alt='" . htmlspecialchars($value['name']) . "' style='width: 50px; height: 50px;'></td>";
+                    echo "<td>" . htmlspecialchars($value['name']) . "</td>";
+                    echo "<td>" . htmlspecialchars($value['category']) . "</td>";
+                    echo "<td>" . htmlspecialchars($value['description']) . "</td>";
+                    echo "<td>" . number_format($value['price'], 2) . "</td>";
+                    echo "<td>" . $value['selected_quantity'] . "</td>";
+                    echo "<td>" . $value['unit'] . "</td>";
+                    echo "<td>" . $value['selected_quantity'] * number_format($value['price'], 2) . "</td>";
+                    echo "<td>" . htmlspecialchars($value['remarks']) . "</td>";
+                    echo "<td>
+                            <div class='d-flex justify-content-between'>
+                                <button class='btn btn-outline-primary edit-btn' data-itemid='" . $value['itemId'] . "' data-selectedquantity='" . $value['selected_quantity'] . "' data-stockquantity='" . $stockQuantity . "'>Edit</button>
+                                <form method='POST' class='mb-0'>
+                                    <input type='hidden' name='itemId' value='" . $value['itemId'] . "'>
+                                    <button type='submit' name='Remove_Item' class='btn btn-outline-danger btn-sm'>Remove</button>
+                                </form>
+                            </div>
+                          </td>";
+                    echo "</tr>";
                 }
             } else {
-                echo "<div class='card'><div class='card-body'>Your cart is empty</div></div>";
+                echo "<tr><td colspan='10'>Your cart is empty</td></tr>";
             }
             ?>
-        </div>
+        </tbody>
+    </table>
+</div>
+
 
         <div class="col-lg-3 col-md-6 ml-auto cart-summary">
             <div class="border bg-light rounded p-4">
-                <h3>Total:</h3>
+                <h3>Grand Total:</h3>
                 <h5 class='text-right'>Rs. <?php echo number_format($total, 2) ?></h5>
                 <br>
                 <form method="POST" action="cartpage.php">

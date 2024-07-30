@@ -164,19 +164,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             margin: 0 5px;
         }
 
-        .btn-back {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            margin-top: 110px;
-            margin-right : 180px;
-        }
-
         td.d-flex {
             border: none; /* Remove any border around the td */
             outline: none; /* Remove any outline */
             box-shadow: none; /* Remove any shadow */
-            gap:4px;
+            gap: 4px;
             padding: 0; /* Remove any default padding */
             margin: 0; /* Remove any default margin */
         }
@@ -191,9 +183,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     </style>
 </head>
 <body>
-
-    <!-- Back Button -->
-    <a href="admin_dashboard.php" class="btn btn-secondary btn-back font-weight-bold temp">&lt; Back</a>
 
     <!-- navbar -->
     <?php include 'navbar.php'; ?>
@@ -270,39 +259,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         echo "<td>$remarks</td>";
                         echo "<td>$date_and_time</td>";
                         echo "<td class='d-flex mt-2 gap-2'>
-                                <button class='btn btn-sm btn-primary btn-update' 
-                                        data-item-id='$item_id' 
-                                        data-quantity='$quantity' 
-                                        data-stock-quantity='$stock_quantity'>Update</button>
-                                <button class='btn btn-sm btn-danger btn-delete' 
-                                        data-item-id='$item_id'>Delete</button>
+                                <a href='admin_orders.php?approve_order=$order_id' class='btn btn-primary btn-action'>Approve</a>
+                                <a href='admin_orders.php?reject_order=$order_id' class='btn btn-primary btn-action'>Reject</a>
                             </td>";
                         echo "</tr>";
 
                         $serial_number++;
                     }
 
-                    echo "<tr id='total-price-row'>";
-                    echo "<td colspan='10' class='text-right total-price'>Total Price</td>";
-                    echo "<td class='total-price' colspan='6' id='total-price'>" . number_format($total_price, 2) . "</td>";
+                    echo "<tr>";
+                    echo "<td colspan='6' class='total-price'>Total Price:</td>";
+                    echo "<td colspan='5' class='total-price'>" . number_format($total_price, 2) . "</td>";
                     echo "</tr>";
 
                     echo "</tbody>";
                     echo "</table>";
-                    echo "<div class='text-right'>
-                            <button class='btn btn-sm btn-success btn-action btn-approve' data-order-id='$order_id'>Approve Order</button>
-                            <button class='btn btn-sm btn-danger btn-action btn-reject' data-order-id='$order_id'>Reject Order</button>
-                        </div>";
                 }
             }
             ?>
         </div>
 
-       <!-- Past Orders Section -->
-       <h2 class="section-title">Past Orders</h2>
+        <!-- Past Orders Section -->
+        <h2 class="section-title">Past Orders</h2>
         <div class="table-container">
             <?php
-            $query = "SELECT * FROM orders WHERE status IN (2, 0) ORDER BY status DESC, date_and_time DESC";
+            $query = "SELECT * FROM orders WHERE status IN (2, 0)";
             $result = mysqli_query($conn, $query);
 
             if (mysqli_num_rows($result) == 0) {
@@ -371,8 +352,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     }
 
                     echo "<tr>";
-                    echo "<td colspan='10' class='total-price text-right'>Total Price:</td>";
-                    echo "<td colspan='8' class='total-price'>" . number_format($total_price, 2) . "</td>";
+                    echo "<td colspan='6' class='total-price'>Total Price:</td>";
+                    echo "<td colspan='5' class='total-price'>" . number_format($total_price, 2) . "</td>";
                     echo "</tr>";
 
                     echo "</tbody>";
@@ -383,82 +364,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         </div>
     </div>
 
-    <!-- Update Quantity Modal -->
-    <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="updateModalLabel">Update Quantity</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form method="POST" action="">
-                        <div class="form-group">
-                            <label for="quantity">Quantity</label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" min="1" step="0.01" required>
-                        </div>
-                        <input type="hidden" id="updateItemId" name="item_id">
-                        <input type="hidden" id="updateOrderId" name="order_id">
-                        <input type="hidden" id="updateStockQuantity" name="stock_quantity">
-                        <button type="submit" name="update_quantity" class="btn btn-primary">Submit</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- jQuery and Bootstrap JS -->
-    <script src="jquery-3.3.1.slim.min.js"></script>
-    <script src="popper.min.js"></script>
-    <script src="bootstrap.min.js"></script>
-
-    <script>
-    $(document).ready(function() {
-        // Handle update button click
-        $('.btn-update').on('click', function() {
-            var itemId = $(this).data('item-id');
-            var quantity = $(this).data('quantity');
-            var orderId = $(this).closest('table').data('order-id'); // Assuming the order ID is stored in the table's data attribute
-            var stockQuantity = $(this).data('stock-quantity');
-            $('#updateItemId').val(itemId);
-            $('#updateOrderId').val(orderId);
-            $('#updateStockQuantity').val(stockQuantity);
-            $('#quantity').val(quantity);
-            $('#updateModal').modal('show');
-        });
-
-        // Handle delete button click
-        $('.btn-delete').on('click', function() {
-            var itemId = $(this).data('item-id');
-            if (confirm("Are you sure you want to delete this item?")) {
-                window.location.href = `admin_orders.php?delete_item=${itemId}`;
-            }
-        });
-
-        // Handle approve button click
-        $('.btn-approve').on('click', function() {
-            var orderId = $(this).data('order-id');
-            if (confirm("Are you sure you want to approve this order?")) {
-                window.location.href = `admin_orders.php?approve_order=${orderId}`;
-            }
-        });
-
-        // Handle reject button click
-        $('.btn-reject').on('click', function() {
-            var orderId = $(this).data('order-id');
-            if (confirm("Are you sure you want to reject this order?")) {
-                window.location.href = `admin_orders.php?reject_order=${orderId}`;
-            }
-        });
-    });
-    </script>
-    
+    <!-- Scripts -->
+    <script src="bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-<?php
-mysqli_close($conn);
-?>

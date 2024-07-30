@@ -75,7 +75,8 @@ body {
   font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
-  background: url('./images/bg_canteen.png') no-repeat center center fixed;
+  /* background: url('./images/bg_canteen.png') no-repeat center center fixed; */
+  background:#f0f2f5;
   background-size: cover;
   display: flex;
   flex-direction: column;
@@ -93,10 +94,10 @@ main {
   margin: auto;
   margin-top:100px;
   height: 60%;
-  background-color: rgba(255, 255, 255, 0.85); /* Add a semi-transparent background */
+  background-color: rgba(255, 150, 150, 0.1); /* Add a semi-transparent background */
   padding: 20px;
   border-radius: 15px; /* Rounded corners for the container */
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 20px rgba(10, 10, 10, 0.2);
   flex: 1;
 }
 
@@ -219,9 +220,9 @@ footer {
     <div class="topic">
       <h2>Canteen Store Department</h2>
     </div>
-    <div class="image-container"> <!-- New container for the image -->
-      <img src="./images/canteen_logo_1.png" alt="Login Image">
-    </div>
+    <div class="image-container">
+  <img src="./images/loginlogo.png" alt="Login Image" style="width: 275px; height: auto;">
+</div>
   </div>
   <div class="right">
     <h1>Login Credentials</h1>

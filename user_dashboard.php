@@ -33,6 +33,12 @@ if (isset($_GET['search'])) {
     $search = $_GET['search'];
 }
 
+// Filter functionality
+$category_filter = "";
+if (isset($_GET['category_filter'])) {
+    $category_filter = $_GET['category_filter'];
+}
+
 ?>
 
 <!doctype html>
@@ -121,9 +127,8 @@ if (isset($_GET['search'])) {
             height: 100px; /* Reduced height of the image */
             object-fit: cover;
             margin-top: 20px;
-            margin:auto;
-            padding-top:4px;
-            
+            margin: auto;
+            padding-top: 4px;
         }
 
         .card-body {
@@ -163,8 +168,8 @@ if (isset($_GET['search'])) {
         .card-footer .btn {
             transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
             padding: 0.375rem 0.75rem; /* Reduced padding for the button */
-            font-size: 0.8em; 
-            margin-left: 30px;/* Reduced font size for the button */
+            font-size: 0.8em;
+            margin-left: 30px; /* Reduced font size for the button */
         }
 
         .card-footer .btn:hover {
@@ -232,6 +237,11 @@ if (isset($_GET['search'])) {
             background-color: #218838;
             border-color: #1e7e34;
         }
+
+        .temp1
+        {
+            margin-left: 645px;
+        }
     </style>
 </head>
 
@@ -256,24 +266,36 @@ if (isset($_GET['search'])) {
                 <button id="orders-btn" class="btn btn-orders" onclick="window.location.href='my_orders.php';">
                     <i class="fa-solid fa-box"></i> My Orders
                 </button>
-                <button id="add-btn" class="btn btn-primary" onclick="window.location.href='cartpage.php';"><i
-                        class="fa-solid fa-cart-plus"></i> My Cart : <?php echo $count; ?> </button>
+                <button id="add-btn" class="btn btn-primary" onclick="window.location.href='cartpage.php';"><i class="fa-solid fa-cart-plus"></i> My Cart : <?php echo $count; ?> </button>
                 <button id="print-btn" class="btn btn-secondary"><i class="fas fa-print"></i> Print</button>
-                <button id="logout-btn" class="btn btn-danger" onclick="window.location.href='logout.php';"><i
-                        class="fas fa-sign-out-alt"></i> Logout</button>
+                <button id="logout-btn" class="btn btn-danger" onclick="window.location.href='logout.php';"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
 
-        <!-- Search form -->
-        <form class="form-inline mb-3">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search">
+        <!-- Search and Filter form -->
+        <form id="filter-form" class="form-inline mb-3">
+            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search" value="<?php echo htmlspecialchars($search); ?>">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            <select id="category-filter" class="form-control temp1" name="category_filter">
+                <option value="">Select Category</option>
+                <option value="">All Categories</option>
+                <option value="C1" <?php if ($category_filter == "C1") echo 'selected'; ?>>C1</option>
+                <option value="C2" <?php if ($category_filter == "C2") echo 'selected'; ?>>C2</option>
+                <option value="C3" <?php if ($category_filter == "C3") echo 'selected'; ?>>C3</option>
+                <option value="C4" <?php if ($category_filter == "C4") echo 'selected'; ?>>C4</option>
+                <option value="C5" <?php if ($category_filter == "C5") echo 'selected'; ?>>C5</option>
+                <option value="C6" <?php if ($category_filter == "C6") echo 'selected'; ?>>C6</option>
+                <!-- Add more categories as needed -->
+            </select>
         </form>
 
         <div class="card-grid">
             <?php
-            // Fetch items with pagination and search
-            $sql = "SELECT * FROM items WHERE name LIKE '%$search%' OR itemId LIKE '%$search%' OR category LIKE '%$search%' OR description LIKE '%$search%' OR price LIKE '%$search%' OR stock_quantity LIKE '%$search%' OR Unit LIKE '%$search%' OR Remarks LIKE '%$search%'";
+            // Fetch items with pagination, search, and filter
+            $sql = "SELECT * FROM items WHERE (name LIKE '%$search%' OR itemId LIKE '%$search%' OR category LIKE '%$search%' OR description LIKE '%$search%' OR price LIKE '%$search%' OR stock_quantity LIKE '%$search%' OR Unit LIKE '%$search%' OR Remarks LIKE '%$search%')";
+            if (!empty($category_filter)) {
+                $sql .= " AND category = '$category_filter'";
+            }
             $sql .= " LIMIT $start_limit, $results_per_page";
             
             $result = mysqli_query($conn, $sql);
@@ -299,8 +321,10 @@ if (isset($_GET['search'])) {
                                 <span><strong>Stock:</strong> <?php echo $row['stock_quantity']; ?></span>
                             </div>
                             <div class="card-text">
-                                <span><strong>Remark:</strong> <?php echo $row['Remarks']; ?></span>
-                                <span style="flex-grow: 1;"></span> <!-- Spacer -->
+                                <!-- <span><strong>Remark:</strong> 
+                                 <?php echo $row['Remarks']; ?>
+                                </span> -->
+                                <!-- <span style="flex-grow: 1;"></span> Spacer -->
                                 <span><strong>Unit</strong> <?php echo $row['Unit']; ?></span>
                             </div>
                         </div>
@@ -315,7 +339,7 @@ if (isset($_GET['search'])) {
                                 <input type="hidden" name="remarks" value="<?php echo $row['Remarks']; ?>">
                                 <input type="hidden" name="unit" value="<?php echo $row['Unit']; ?>">
                                 <div class="select-quantity">
-                                    <input type="number" name="selected_quantity" min="1" step="<?php echo ($row['Unit'] == 'Packets') ? '1' : '0.01'; ?>"  max="<?php echo min($row['stock_quantity'] , $row['limitt']); ?>" value="0">
+                                    <input type="number" name="selected_quantity" min="1" step="<?php echo ($row['Unit'] == 'Packets') ? '1' : '1'; ?>" max="<?php echo min($row['stock_quantity'], $row['limitt']); ?>" value="0">
                                     <button type="submit" name="Add_To_Cart" class="btn btn-outline-primary" style="padding: 0.2rem 0.5rem; font-size: 0.8em;">Add To Cart</button>
                                 </div>
                             </form>
@@ -328,7 +352,10 @@ if (isset($_GET['search'])) {
                 mysqli_free_result($result);
 
                 // Pagination links
-                $sql_pagination = "SELECT COUNT(*) AS total FROM items WHERE name LIKE '%$search%' OR itemId LIKE '%$search%' OR category LIKE '%$search%' OR description LIKE '%$search%' OR price LIKE '%$search%' OR stock_quantity LIKE '%$search%'";
+                $sql_pagination = "SELECT COUNT(*) AS total FROM items WHERE (name LIKE '%$search%' OR itemId LIKE '%$search%' OR category LIKE '%$search%' OR description LIKE '%$search%' OR price LIKE '%$search%' OR stock_quantity LIKE '%$search%')";
+                if (!empty($category_filter)) {
+                    $sql_pagination .= " AND category = '$category_filter'";
+                }
 
                 $result_pagination = mysqli_query($conn, $sql_pagination);
                 $row_pagination = mysqli_fetch_assoc($result_pagination);
@@ -339,7 +366,7 @@ if (isset($_GET['search'])) {
                     echo '<div class="d-flex justify-content-center mt-4">';
                     echo '<ul class="pagination">';
                     for ($i = 1; $i <= $total_pages; $i++) {
-                        echo '<li class="page-item ' . ($i == $page ? 'active' : '') . '"><a class="page-link" href="?page=' . $i . '&search=' . $search . '">' . $i . '</a></li>';
+                        echo '<li class="page-item ' . ($i == $page ? 'active' : '') . '"><a class="page-link" href="?page=' . $i . '&search=' . $search . '&category_filter=' . $category_filter . '">' . $i . '</a></li>';
                     }
                     echo '</ul>';
                     echo '</div>';
@@ -361,6 +388,11 @@ if (isset($_GET['search'])) {
         // Print button functionality
         document.getElementById('print-btn').addEventListener('click', function () {
             window.print();
+        });
+
+        // Automatically submit the form when the category is changed
+        document.getElementById('category-filter').addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
         });
     </script>
 

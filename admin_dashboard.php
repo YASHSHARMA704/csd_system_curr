@@ -18,38 +18,56 @@ $insert = $delete = $update = false;
 
 // Handle form submissions
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['submit'])) {
-        // Add new item
-        $itemId = $_POST["itemId"];
-        $name = $_POST['name'];
-        $category = $_POST['category'];
-        $description = $_POST['description'];
-        $price = $_POST['price'];
-        $stock_quantity = $_POST['stock_quantity'];
-        $unit = $_POST['unit'];
-        $remarks = $_POST['remarks'];
-        $limit = $_POST['limit'];
-        $item_image = $_FILES['item_image']['name'];
-
-        $checkQuery = "SELECT * FROM items WHERE itemId = $itemId";
-        $checkResult = mysqli_query($conn, $checkQuery);
-
-        if (mysqli_num_rows($checkResult) > 0) {
-            echo "<script>alert('Item ID already exists. Please choose a different Item ID.');</script>";
-        } else {
-            // Move uploaded image to the server directory
-            $target_dir = "items_image/";
-            $target_file = $target_dir . basename($_FILES["item_image"]["name"]);
-            move_uploaded_file($_FILES["item_image"]["tmp_name"], $target_file);
-
-            $sql = "INSERT INTO items (itemId , name, category, description, price, stock_quantity, item_image, Remarks , Unit, limitt) VALUES ('$itemId' , '$name', '$category', '$description', '$price', '$stock_quantity', '$item_image' , '$remarks' , '$unit', '$limit')";
-
-            if (mysqli_query($conn, $sql)) {
-                $insert = true;
+        if (isset($_POST['submit'])) {
+            // Get the item details from the form
+            $itemId = $_POST["itemId"];
+            $name = $_POST['name'];
+            $category = $_POST['category'];
+            $description = $_POST['description'];
+            $price = $_POST['price'];
+            $stock_quantity = $_POST['stock_quantity'];
+            $unit = $_POST['unit'];
+            $remarks = $_POST['remarks'];
+            $limit = $_POST['limit'];
+            $image_uploaded = isset($_FILES['item_image']) && $_FILES['item_image']['error'] == 0 ? 'yes' : 'no';
+        
+            // Check if the item ID already exists
+            $checkQuery = "SELECT * FROM items WHERE itemId = $itemId";
+            $checkResult = mysqli_query($conn, $checkQuery);
+        
+            if (mysqli_num_rows($checkResult) > 0) {
+                echo "<script>alert('Item ID already exists. Please choose a different Item ID.');</script>";
+            } else {
+                // Handle image upload
+                if ($image_uploaded === 'yes') {
+                    $item_image = $_FILES['item_image']['name'];
+                    $target_directory = "items_image/";
+                    $target_file = basename($item_image);
+        
+                    // Move uploaded file to target directory
+                    if (move_uploaded_file($_FILES['item_image']['tmp_name'], $target_file)) {
+                        $item_image = $target_file;
+                    } else {
+                        // Handle error during file upload
+                        $item_image = "default.png";
+                    }
+                } else {
+                    $item_image = "default.png";
+                }
+        
+                // Insert the item into the database
+                $sql = "INSERT INTO items (itemId, name, category, description, price, stock_quantity, item_image, Remarks, Unit, limitt) 
+                        VALUES ('$itemId', '$name', '$category', '$description', '$price', '$stock_quantity', '$item_image', '$remarks', '$unit', '$limit')";
+        
+                // Execute the query
+                if (mysqli_query($conn, $sql)) {
+                    echo "<script>alert('Item added successfully.');</script>";
+                } else {
+                    echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+                }
             }
         }
-
-    } elseif (isset($_POST['update'])) {
+    elseif (isset($_POST['update'])) {
         // Update item
         $itemId = $_POST['itemId'];
         $name = $_POST['name'];
@@ -272,6 +290,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="C2">C2</option>
                             <option value="C3">C3</option>
                             <option value="C4">C4</option>
+                            <option value="C4">C5</option>
+                            <option value="C4">C6</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -306,7 +326,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                     <div class="form-group">
                         <label for="item_image">Item Image</label>
-                        <input type="file" class="form-control-file" id="item_image" name="item_image" required>
+                        <input type="file" class="form-control-file" id="item_image" name="item_image">
+                        <input type="hidden" id="image_uploaded" name="image_uploaded" value="no">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -427,6 +448,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="dataTables.bootstrap4.min.js"></script>
     <script src="bootstrap.min.js"></script>
     <script>
+
+        document.getElementById('item_image').addEventListener('change', function() {
+            document.getElementById('image_uploaded').value = this.files.length > 0 ? 'yes' : 'no';
+        });
+
         $(document).ready(function () {
             $('#myTable').DataTable();
 

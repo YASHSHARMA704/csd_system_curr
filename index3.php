@@ -36,6 +36,51 @@ if (isset($_POST['login'])) {
             $_SESSION['is_created'] = $row['is_created'];
             $_SESSION['user_type'] = $row['user_type'];
 
+            // Get current year and month
+            $curr_year = date("Y");
+            $curr_month = date("n"); // numeric representation of month without leading zeros
+
+            // Determine the current pair
+            $pairs = [
+                1 => [1, 2],
+                2 => [3, 4],
+                3 => [5, 6],
+                4 => [7, 8],
+                5 => [9, 10],
+                6 => [11, 12]
+            ];
+            $curr_pair = array_search($curr_month, array_column($pairs, 0)) ? array_search($curr_month, array_column($pairs, 0)) : array_search($curr_month, array_column($pairs, 1));
+
+            // Prepare the SQL query to get order details for the current pair and year
+            $query = "SELECT o.user_id, od.item_id, od.quantity
+                      FROM orders o
+                      INNER JOIN order_details od ON o.order_id = od.order_id
+                      WHERE YEAR(o.date_and_time) = $curr_year
+                      AND MONTH(o.date_and_time) IN ({$pairs[$curr_pair][0]}, {$pairs[$curr_pair][1]})";
+            
+            $result = $conn->query($query);
+
+            // Create 2D array with user_id as key and an associative array of item_id => quantity as value
+            $order_data = [];
+            while ($row = $result->fetch_assoc()) {
+                $user_id = $row['user_id'];
+                $item_id = $row['item_id'];
+                $quantity = $row['quantity'];
+                
+                if (!isset($order_data[$user_id])) {
+                    $order_data[$user_id] = [];
+                }
+                
+                if (!isset($order_data[$user_id][$item_id])) {
+                    $order_data[$user_id][$item_id] = 0;
+                }
+                
+                $order_data[$user_id][$item_id] += $quantity;
+            }
+
+            // Store the order data in the session
+            $_SESSION['order_data'] = $order_data;
+
             // Determine redirection based on user_type
             if ($row['user_type'] === 'user') {
                 header('Location: user_dashboard.php');
@@ -71,148 +116,7 @@ if (isset($_SESSION['error_message'])) {
 <head>
 <title>Login</title>
 <style>
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 0;
-  padding: 0;
-  /* background: url('./images/bg_canteen.png') no-repeat center center fixed; */
-  /* background:#f0f2f5; */
-  background:rgb(243,218,206);
-  background-size: cover;
-  display: flex;
-  flex-direction: column;
-  height:100%;
-  width:100%;
-}
-main {
-  flex: 1; /* Ensure main content takes up remaining space */
-}
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 60%;
-  margin: auto;
-  margin-top:100px;
-  height: 60%;
-  background-color: rgba(25, 150, 150, 0.1); /* Add a semi-transparent background */
-  box-shadow: 0 0 10px rgba(10, 10, 10, 0.5);
-  padding: 20px;
-  border-radius: 15px; /* Rounded corners for the container */
-  box-shadow: 0 0 20px rgba(10, 10, 10, 0.2);
-  flex: 1;
-}
-
-.left {
-  flex: 1;
-  height: 50%;
-  width: 70%;
-  display: flex;
-  margin-top: -85px;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align:center;
-}
-
-.right {
-  flex: 1;
-  /* margin-top: 75px; */
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: 40px;
-  color: #333;
-}
-
-input[type="text"],
-input[type="password"] {
-  width: 100%;
-  padding: 12px;
-  font-size: 16px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 5px; /* Rounded corners for the input fields */
-  margin-bottom: 20px;
-  box-sizing: border-box;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-button {
-  background-color: #007BFF;
-  color: white;
-  padding: 12px 20px;
-  margin: 20px auto; /* Center the button horizontally */
-  border: none;
-  border-radius: 5px; /* Rounded corners for the button */
-  cursor: pointer;
-  width: 100%;
-  max-width: 200px; /* Set maximum width if needed */
-  text-align: center; /* Center align text */
-  font-size: 16px;
-  display: block; /* Ensure block display for centering */
-  transition: background-color 0.3s ease, transform 0.3s ease; /* Add transition for smooth effect */
-}
-
-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.05); /* Slightly increase size on hover */
-}
-
-img {
-  max-width: 80%; /* Increase image size */
-  height: auto;
-  transition: opacity 0.3s ease, transform 0.3s ease; /* Add transition for smooth effect */
-}
-
-img:hover {
-  opacity: 0.8; /* Slightly decrease opacity on hover */
-  transform: scale(1.05); /* Slightly increase size on hover */
-}
-
-.forgot {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.forgot a {
-  color: #007BFF;
-  text-decoration: none;
-}
-
-.forgot a:hover {
-  text-decoration: underline;
-}
-
-footer {
-  background-color: #002147;
-  color: white;
-  text-align: center;
-  padding: 10px 0;
-  margin-top: auto;
-}
-
-.topic {
-  font-size: 24px;
-  font-weight: 600;
-  color: #333;
-}
-
-.error {
-  color: red;
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.bold-label {
-  font-weight: bold;
-  font-size: 18px;
-  color: #333;
-}
+/* Your CSS styling */
 </style>
 </head>
 <body>
@@ -223,8 +127,8 @@ footer {
       <h2>Canteen Store Department</h2>
     </div>
     <div class="image-container">
-  <img src="./images/loginlogo.png" alt="Login Image" style="width: 275px; height: auto;">
-</div>
+      <img src="./images/loginlogo.png" alt="Login Image" style="width: 275px; height: auto;">
+    </div>
   </div>
   <div class="right">
     <h1>Login Credentials</h1>
@@ -236,7 +140,6 @@ footer {
       <input type="password" id="password" name="password" placeholder="Type your password" required>
       <button type="submit" name="login">Submit</button>
     </form>
-    
   </div>
 </div>
 <?php include 'footer.php'; ?>

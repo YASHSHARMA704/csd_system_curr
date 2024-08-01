@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 14, 2024 at 10:51 PM
+-- Generation Time: Aug 01, 2024 at 09:48 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -54,8 +54,10 @@ CREATE TABLE `id_emp` (
 --
 
 INSERT INTO `id_emp` (`id`, `first_name`, `middle_name`, `last_name`, `gen`, `dob`, `mobile_no`, `email_id`, `cadre_id`, `desig_id`, `internal_desig_id`, `group_id`, `user_type`, `telephone_no`, `username`, `password`, `status`, `is_created`, `is_deleted`) VALUES
-(2, 'Jane', 'Mary', 'Johnson', 'Female', '1992-05-15', '9876543211', 'jane.johnson@example.com', 2, 2, 2, 2, 'admin', '1234567891', 'admin', 'admin', 1, '2024-07-09 11:13:44', 'NO'),
-(1, 'John', 'Doe', 'Smith', 'Male', '1990-01-01', '9876543210', 'john.doe@example.com', 1, 1, 1, 1, 'user', '1234567890', 'user', 'user', 1, '2024-07-09 11:13:44', 'NO');
+(2, 'Jane', 'Mary', 'Johnson', 'Female', '1992-05-15', '9876543211', 'jane.johnson@example.com', 2, 2, 2, 2, 'admin', '1234567891', 'admin', 'admin', 1, '2024-07-09 05:43:44', 'NO'),
+(1, 'John', 'Doe', 'Smith', 'Male', '1990-01-01', '9876543210', 'john.doe@example.com', 1, 1, 1, 1, 'user', '1234567890', 'user', 'user', 1, '2024-07-09 05:43:44', 'NO'),
+(3, 'ane', 'Mary', 'Johnson', 'Female', '1992-05-15', '9876543211', 'jane.johnson@example.com', 2, 2, 2, 2, 'user', '1234567891', 'user2', 'user2', 1, '2024-07-09 05:43:44', 'NO'),
+(4, 'Kane', 'Mary', 'Johnson', 'Female', '1992-05-15', '9876543211', 'jane.johnson@example.com', 2, 2, 2, 2, 'user', '1234567891', 'user3', 'user3', 1, '2024-07-09 05:43:44', 'NO');
 
 -- --------------------------------------------------------
 
@@ -71,22 +73,26 @@ CREATE TABLE `items` (
   `description` text DEFAULT NULL,
   `item_image` varchar(400) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
-  `stock_quantity` int(11) DEFAULT 0,
-  `date_&_time_added` datetime NOT NULL DEFAULT current_timestamp()
+  `stock_quantity` decimal(10,2) DEFAULT 0.00,
+  `date_&_time_added` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `Remarks` text DEFAULT NULL,
+  `Unit` varchar(255) DEFAULT NULL,
+  `limitt` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `items`
 --
 
-INSERT INTO `items` (`sno`, `itemId`, `name`, `category`, `description`, `item_image`, `price`, `stock_quantity`, `date_&_time_added`) VALUES
-(2, 0, 'Apple111', 'fruit', 'good', 'cat-1.png', 70.00, 20, '2024-07-14 18:30:43'),
-(5, 1, 'fruit', 'fruit', 'fruit', 'cat-1.png', 50.00, 50, '2024-07-14 19:00:22'),
-(6, 3, 'te', 'test', 'a', 'cat-1.png', 4.00, 89, '2024-07-14 19:13:32'),
-(7, 5, 'go', 'good', 'g', 'about-img-1.png', 7.00, 7, '2024-07-14 19:27:41'),
-(10, 10, 'banana', 'fruit', 'fruit', 'cat-3.png', 56.65, 75, '2024-07-14 21:15:28'),
-(11, 12, 'test', 'test', 'test', 'cat-1.png', 89.00, 75, '2024-07-14 21:16:12'),
-(14, 96, 'tes', 'testiiiiii', 'testiiiiii', 'cat-3.png', 7.00, 1, '2024-07-15 01:58:50');
+INSERT INTO `items` (`sno`, `itemId`, `name`, `category`, `description`, `item_image`, `price`, `stock_quantity`, `date_&_time_added`, `Remarks`, `Unit`, `limitt`) VALUES
+(41, 100, 'apple', 'C1', 'apple', 'cat-3.png', 50.60, 550.00, '2024-08-02 01:00:15', 'apple', 'Kg', 25.00),
+(42, 102, 'orange', 'C2', 'orange', 'cat-1.png', 60.20, 150.00, '2024-08-02 01:00:18', 'orange', 'Kg', 27.00),
+(43, 105, 'Parle-G', 'C3', 'Parle-G', 'cat-3.png', 55.00, 50.00, '2024-07-28 23:01:29', 'Parle', 'Packets', 10.00),
+(44, 123, 'test', 'C1', 'test', 'cat-3.png', 56.00, 55.00, '2024-08-02 00:43:14', 'test', 'Kg', 15.00),
+(47, 112, 'm', 'C1', 'm', 'cat-3.png', 8.00, 800.00, '2024-08-02 01:00:24', 'fds2', 'Kg', 4.00),
+(48, 56, 'p', 'C1', 'p', 'cat-3.png', 7.00, 8.00, '2024-07-30 23:14:29', 's', 'Kg', 7.00),
+(51, 7899, 'opop', 'C1', 'op22', 'default.png', 89.00, 78.00, '2024-07-30 23:26:02', 'op', 'Kg', 45.00),
+(52, 107, 'mp', 'C4', 'mp', 'cat-3.png', 52.00, 53.00, '2024-07-31 02:19:25', 'mostp', 'ml', 10.00);
 
 -- --------------------------------------------------------
 
@@ -98,15 +104,16 @@ CREATE TABLE `orders` (
   `sno` int(11) NOT NULL,
   `user_id` int(11) DEFAULT NULL,
   `order_id` int(11) DEFAULT NULL,
-  `status` int(11) DEFAULT NULL
+  `status` int(11) DEFAULT NULL,
+  `date_and_time` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`sno`, `user_id`, `order_id`, `status`) VALUES
-(0, 1, 374286, 1);
+INSERT INTO `orders` (`sno`, `user_id`, `order_id`, `status`, `date_and_time`) VALUES
+(6, 1, 528178, 2, '2024-08-02 01:07:17');
 
 -- --------------------------------------------------------
 
@@ -119,16 +126,21 @@ CREATE TABLE `order_details` (
   `order_id` int(11) DEFAULT NULL,
   `item_id` int(11) DEFAULT NULL,
   `item_name` varchar(255) DEFAULT NULL,
-  `quantity` int(11) NOT NULL,
-  `price` decimal(10,3) DEFAULT NULL
+  `quantity` decimal(10,2) NOT NULL,
+  `price` decimal(10,3) DEFAULT NULL,
+  `date_and_time` datetime DEFAULT current_timestamp(),
+  `Unit` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `order_details`
 --
 
-INSERT INTO `order_details` (`sno`, `order_id`, `item_id`, `item_name`, `quantity`, `price`) VALUES
-(5, 374286, 3, 'te', 5, 4.000);
+INSERT INTO `order_details` (`sno`, `order_id`, `item_id`, `item_name`, `quantity`, `price`, `date_and_time`, `Unit`) VALUES
+(11, 528178, 100, 'apple', 2.00, 50.600, '2024-08-02 01:07:17', 'Kg'),
+(12, 528178, 102, 'orange', 4.00, 60.200, '2024-08-02 01:07:17', 'Kg'),
+(13, 528178, 105, 'Parle-G', 2.00, 55.000, '2024-08-02 01:07:17', 'Packets'),
+(14, 528178, 123, 'test', 2.00, 56.000, '2024-08-02 01:07:17', 'Kg');
 
 --
 -- Indexes for dumped tables
@@ -170,13 +182,19 @@ ALTER TABLE `order_details`
 -- AUTO_INCREMENT for table `items`
 --
 ALTER TABLE `items`
-  MODIFY `sno` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `sno` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+
+--
+-- AUTO_INCREMENT for table `orders`
+--
+ALTER TABLE `orders`
+  MODIFY `sno` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `sno` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `sno` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
